@@ -1,23 +1,21 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from "next";
 import { Inter, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const ibmPlexSerif = IBM_Plex_Serif({
-  variable: '--font-ibm-plex-serif',
   subsets: ['latin'],
-  weight: ['400', '700']
+  weight: ['400', '700'],
+  variable: '--font-ibm-plex-serif'
 })
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"]
-});
 
 export const metadata: Metadata = {
   title: "BankInd",
-  description: "BankInd - Welcome to New-Gen of banking in India",
+  description: "New-Gen Banking In India",
   icons: {
-    icon : '/icons/logo.svg'
+    icon: '/icons/logo.svg'
   }
 };
 
@@ -28,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${ibmPlexSerif.variable} ${inter.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${ibmPlexSerif.variable}`}>{children}</body>
     </html>
   );
 }

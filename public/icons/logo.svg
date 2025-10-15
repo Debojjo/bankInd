@@ -1,0 +1,153 @@
+<!-- Banking app logo — blue, 3D feel -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Banking app logo">
+  <defs>
+    <!-- Background rounded square gradient (gives depth) -->
+    <radialGradient id="bgRadial" cx="30%" cy="25%" r="100%">
+      <stop offset="0%" stop-color="#7fc3ff"/>
+      <stop offset="45%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#0b66d1"/>
+    </radialGradient>
+
+    <!-- Subtle darker edge for 3D bezel -->
+    <linearGradient id="bevel" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.18)"/>
+    </linearGradient>
+
+    <!-- Building fill (slightly metallic) -->
+    <linearGradient id="buildingGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#dbeefe" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#b6d8ff" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <!-- Column shadow gradient -->
+    <linearGradient id="colShadow" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="rgba(0,0,0,0.22)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.02)"/>
+    </linearGradient>
+
+    <!-- Coin / vault accent -->
+    <radialGradient id="coinRad" cx="30%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#ffef9b"/>
+      <stop offset="50%" stop-color="#ffd54b"/>
+      <stop offset="100%" stop-color="#f0b429"/>
+    </radialGradient>
+
+    <!-- Soft outer shadow for app tile -->
+    <filter id="outerShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feOffset dx="0" dy="20" result="off"/>
+      <feGaussianBlur in="off" stdDeviation="24" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 .25 0" result="shadow"/>
+      <feComposite in="shadow" in2="SourceGraphic" operator="out" result="shadowOut"/>
+      <feMerge>
+        <feMergeNode in="shadowOut"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Inner glossy highlight -->
+    <linearGradient id="gloss" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.45)"/>
+      <stop offset="50%" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
+    </linearGradient>
+
+    <!-- Slight inner shadow for the rounded tile -->
+    <filter id="innerShadow">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feOffset dx="0" dy="2" result="o"/>
+      <feComposite in="o" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="inner"/>
+      <feColorMatrix in="inner" type="matrix" values="0 0 0 0 0
+                                                     0 0 0 0 0
+                                                     0 0 0 0 0
+                                                     0 0 0 .25 0"/>
+      <feBlend in="SourceGraphic" in2="inner" mode="normal"/>
+    </filter>
+
+    <!-- small stroke for crisp edges -->
+    <style>
+      .tile { fill: url(#bgRadial); }
+      .bevel { fill: url(#bevel); mix-blend-mode: overlay; opacity: 0.85; }
+      .bank-building { fill: url(#buildingGrad); stroke: rgba(0,0,0,0.06); stroke-linejoin: round; }
+      .column { fill: #e9f4ff; stroke: rgba(0,0,0,0.06); stroke-width: 1; }
+      .coin { fill: url(#coinRad); stroke: rgba(0,0,0,0.08); stroke-width: 1; }
+      .accent { fill: url(#colShadow); opacity: 0.12; }
+    </style>
+  </defs>
+
+  <!-- Outer tile with rounded corners -->
+  <g filter="url(#outerShadow)">
+    <rect x="64" y="64" width="896" height="896" rx="160" ry="160" class="tile"/>
+    <!-- Bevel highlight -->
+    <rect x="64" y="64" width="896" height="896" rx="160" ry="160" class="bevel"/>
+    <!-- Inner subtle shadow -->
+    <rect x="64" y="64" width="896" height="896" rx="160" ry="160" fill="transparent" filter="url(#innerShadow)"/>
+  </g>
+
+  <!-- Main icon group (center) -->
+  <g transform="translate(256,240) scale(0.9)">
+    <!-- Backplate subtle rounded rectangle to lift the symbol -->
+    <rect x="70" y="70" width="428" height="428" rx="48" ry="48" fill="rgba(255,255,255,0.02)"/>
+
+    <!-- Bank roof (triangle) giving a classic bank silhouette -->
+    <g transform="translate(0, -12) rotate(-2 300 150)">
+      <path d="M300 60 L120 180 L480 180 Z" class="bank-building" stroke="rgba(0,0,0,0.06)" stroke-width="2" />
+      <!-- Roof shadow (slight) -->
+      <path d="M300 72 L140 184 L460 184 Z" fill="rgba(11,102,209,0.06)" />
+    </g>
+
+    <!-- Columns — slightly angled for perspective -->
+    <g transform="translate(72,174) scale(1,1)">
+      <!-- base -->
+      <rect x="30" y="210" width="340" height="22" rx="6" fill="#d8ebff" stroke="rgba(0,0,0,0.06)"/>
+      <!-- columns (4) -->
+      <g transform="translate(18,0) skewX(-6)">
+        <rect x="20" y="30" width="40" height="190" rx="6" class="column"/>
+        <rect x="100" y="30" width="40" height="190" rx="6" class="column"/>
+        <rect x="180" y="30" width="40" height="190" rx="6" class="column"/>
+        <rect x="260" y="30" width="40" height="190" rx="6" class="column"/>
+        <!-- subtle column separators / shadows -->
+        <rect x="20" y="30" width="2" height="190" fill="rgba(0,0,0,0.06)"/>
+        <rect x="100" y="30" width="2" height="190" fill="rgba(0,0,0,0.06)"/>
+        <rect x="180" y="30" width="2" height="190" fill="rgba(0,0,0,0.06)"/>
+        <rect x="260" y="30" width="2" height="190" fill="rgba(0,0,0,0.06)"/>
+      </g>
+
+      <!-- front pediment / bar above columns -->
+      <rect x="10" y="6" width="372" height="36" rx="8" class="bank-building" />
+      <!-- small entrance -->
+      <rect x="160" y="120" width="70" height="100" rx="8" fill="#bcdfff" stroke="rgba(0,0,0,0.06)"/>
+
+      <!-- subtle accent shadow inside columns -->
+      <rect x="30" y="30" width="340" height="200" rx="6" class="accent"/>
+    </g>
+  </g>
+
+  <!-- Coin / badge accent at lower-right overlapping tile to suggest value/security -->
+  <g transform="translate(620,570) rotate(-12)">
+    <!-- Drop shadow for coin -->
+    <ellipse cx="120" cy="120" rx="92" ry="92" fill="black" opacity="0.08" transform="translate(8,18)"/>
+    <!-- coin circle -->
+    <circle cx="120" cy="120" r="92" class="coin" />
+    <!-- inner ring -->
+    <circle cx="120" cy="120" r="64" fill="rgba(255,255,255,0.12)"/>
+    <!-- currency chevron / vault symbol -->
+    <g transform="translate(42,54) scale(1.4)">
+      <path d="M36 24c0-9 7-16 16-16s16 7 16 16-7 16-16 16-16-7-16-16z" fill="#ffffff" opacity="0.95"/>
+      <path d="M40 36h28v6H40z" fill="rgba(0,0,0,0.06)"/>
+    </g>
+  </g>
+
+  <!-- Glossy top highlight across tile -->
+  <path d="M120 120 C220 60, 804 60, 904 120 L904 160 C804 100, 220 100, 120 160 Z"
+        fill="url(#gloss)" opacity="0.55"/>
+
+  <!-- Tiny shine streak for polish -->
+  <path d="M180 260 C240 220, 420 220, 480 260" stroke="rgba(255,255,255,0.28)" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.9"/>
+
+</svg>

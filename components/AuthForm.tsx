@@ -24,11 +24,13 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SignUp from "@/app/(auth)/sign-up/page";
 import SignIn from "@/app/(auth)/sign-in/page";
+import { getLoggedInUser, signIn, signUp } from "@/lib/actions/user.actions";
 
 
 const AuthForm = ({ type }: { type: string }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  
 
   const router = useRouter();
 
@@ -45,43 +47,30 @@ const AuthForm = ({ type }: { type: string }) => {
 
   // 2. Define a submit handler.
    const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    //   setIsLoading(true);
+      setIsLoading(true);
 
-    //   try {
-    //     // Sign up with Appwrite & create plaid token
+      try {
+        // Sign up with Appwrite & create plaid token
         
-    //     if(type === 'sign-up') {
-    //       const userData = {
-    //         firstName: data.firstName!,
-    //         lastName: data.lastName!,
-    //         address1: data.address1!,
-    //         city: data.city!,
-    //         state: data.state!,
-    //         postalCode: data.postalCode!,
-    //         dateOfBirth: data.dateOfBirth!,
-    //         ssn: data.pan!,
-    //         email: data.email,
-    //         password: data.password
-    //       }
+        if(type === 'sign-up') {
+          const newUser = await signUp(data);
 
-    //       const newUser = await SignUp(data);
+          setUser(newUser);
+        }
 
-    //       setUser(newUser);
-    //     }
+        if(type === 'sign-in') {
+          const response = await signIn({
+            email: data.email,
+            password: data.password,
+          })
 
-    //     if(type === 'sign-in') {
-    //       const response = await SignIn({
-    //         email: data.email,
-    //         password: data.password,
-    //       })
-
-    //       if(response) router.push('/')
-    //     }
-    //   } catch (error) {
-    //     console.log(error);
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
+          if(response) router.push('/')
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
   return (
@@ -149,7 +138,7 @@ const AuthForm = ({ type }: { type: string }) => {
                       control={form.control}
                       name="state"
                       label="State"
-                      placeholder="Example: Maharashtra"
+                      placeholder="Example: WB"
                     />
                     <CustomInput
                       control={form.control}

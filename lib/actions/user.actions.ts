@@ -1,6 +1,6 @@
 "use server";
 
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../appwrite";
 import { cookies } from "next/headers";
 import { encryptId, extractCustomerIdFromUrl, parseStringify } from "../utils";
@@ -14,21 +14,57 @@ import { plaidClient } from "../plaid";
 import { revalidatePath } from "next/cache";
 import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
 
+export const getUserInfo = async ({ userId }: getUserInfoProps) => {
+  try {
+    if (
+      !process.env.APPWRITE_DATABASE_ID ||
+      !process.env.APPWRITE_BANK_COLLECTION_ID
+    ) {
+      throw new Error(
+        "Missing required environment variables: APPWRITE_DATABASE_ID or APPWRITE_BANK_COLLECTION_ID"
+      );
+    }
+
+    const { tablesDB } = await createAdminClient();
+
+    const user = await tablesDB.listRows({
+      databaseId: process.env.APPWRITE_DATABASE_ID!,
+      tableId: process.env.APPWRITE_USER_COLLECTION_ID!,
+      queries: [Query.equal("userId", [userId])],
+    });
+
+    return parseStringify(user.rows[0]);
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
+  }
+};
+
 export const signIn = async ({ email, password }: signInProps) => {
   try {
     const { account } = await createAdminClient();
-    const response = await account.createEmailPasswordSession({
+
+    const session = await account.createEmailPasswordSession({
       email,
       password,
     });
 
-    return parseStringify(response);
+    cookies().set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+
+    const user = await getUserInfo({ userId: session.userId });
+
+    return parseStringify(user);
   } catch (error) {
     console.log("Error", error);
   }
 };
 
-export const signUp = async ({ password, ...userData}: SignUpParams) => {
+export const signUp = async ({ password, ...userData }: SignUpParams) => {
   const { email, firstName, lastName } = userData;
 
   let newUserAccount;
@@ -43,21 +79,21 @@ export const signUp = async ({ password, ...userData}: SignUpParams) => {
       name: `${firstName} ${lastName}`,
     });
 
-    if(!newUserAccount) throw new Error('Error creating new user!')
+    if (!newUserAccount) throw new Error("Error creating new user!");
 
     const dwollaCustomerUrl = await createDwollaCustomer({
       ...userData,
-      type: 'personal'
-    })  
+      type: "personal",
+    });
 
-    if(!dwollaCustomerUrl) throw new Error('Error creating dwolla customer!')
+    if (!dwollaCustomerUrl) throw new Error("Error creating dwolla customer!");
 
-    const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl); 
-    
+    const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
+
     const newUser = await tablesDB.createRow({
-      databaseId: process.env.APPWRITE_DATABASE_ID!, 
+      databaseId: process.env.APPWRITE_DATABASE_ID!,
       tableId: process.env.APPWRITE_USER_COLLECTION_ID!,
-      rowId: ID.unique(),                        
+      rowId: ID.unique(),
       data: {
         ...userData,
         userId: newUserAccount.$id,
@@ -83,12 +119,14 @@ export const signUp = async ({ password, ...userData}: SignUpParams) => {
     console.error("Error during sign-up:", error);
     throw error;
   }
-}; 
+};
 
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
-    const user = await account.get();
+    const result = await account.get();
+
+    const user = await getUserInfo({ userId: result.$id})
 
     return parseStringify(user);
   } catch (error) {
@@ -138,12 +176,12 @@ export const createBankAccount = async ({
   sharableId,
 }: createBankAccountProps) => {
   try {
-    const { tablesDB } = await createAdminClient(); 
+    const { tablesDB } = await createAdminClient();
 
     const bankAccount = await tablesDB.createRow({
-      databaseId: process.env.APPWRITE_DATABASE_ID!, 
-      tableId: process.env.APPWRITE_BANK_COLLECTION_ID!, 
-      rowId: ID.unique(), 
+      databaseId: process.env.APPWRITE_DATABASE_ID!,
+      tableId: process.env.APPWRITE_BANK_COLLECTION_ID!,
+      rowId: ID.unique(),
       data: {
         userId,
         bankId,
@@ -154,9 +192,9 @@ export const createBankAccount = async ({
       },
     });
 
-    return parseStringify(bankAccount); 
+    return parseStringify(bankAccount);
   } catch (error) {
-    console.error('Error creating bank account row:', error);
+    console.error("Error creating bank account row:", error);
     throw error; // Re-throw or handle as needed
   }
 };
@@ -203,7 +241,7 @@ export const exchangePublicToken = async ({
     // If the funding source URL is not created, throw an error
     if (!fundingSourceUrl) throw Error;
 
-    // Create a bank account using the user ID, item ID, account ID, access token, funding source URL, and shareableId ID
+    // Create a bank account using the user ID, item ID, account ID, access token, funding source URL, and sharableId ID
     await createBankAccount({
       userId: user.$id,
       bankId: itemId,
@@ -222,5 +260,57 @@ export const exchangePublicToken = async ({
     });
   } catch (error) {
     console.error("An error occurred while creating exchanging token:", error);
+  }
+};
+
+export const getBanks = async ({ userId }: getBanksProps) => {
+  try {
+    if (
+      !process.env.APPWRITE_DATABASE_ID ||
+      !process.env.APPWRITE_BANK_COLLECTION_ID
+    ) {
+      throw new Error(
+        "Missing required environment variables: APPWRITE_DATABASE_ID or APPWRITE_BANK_COLLECTION_ID"
+      );
+    }
+
+    const { tablesDB } = await createAdminClient();
+
+    const banks = await tablesDB.listRows({
+      databaseId: process.env.APPWRITE_DATABASE_ID!,
+      tableId: process.env.APPWRITE_BANK_COLLECTION_ID!,
+      queries: [Query.equal("userId", [userId])],
+    });
+
+    return parseStringify(banks.rows);
+  } catch (error) {
+    console.error("Error retrieving bank rows:", error);
+    throw error;
+  }
+};
+
+export const getBank = async ({ documentId }: getBankProps) => {
+  try {
+    if (
+      !process.env.APPWRITE_DATABASE_ID ||
+      !process.env.APPWRITE_BANK_COLLECTION_ID
+    ) {
+      throw new Error(
+        "Missing required environment variables: APPWRITE_DATABASE_ID or APPWRITE_BANK_COLLECTION_ID"
+      );
+    }
+
+    const { tablesDB } = await createAdminClient();
+
+    const bank = await tablesDB.listRows({
+      databaseId: process.env.APPWRITE_DATABASE_ID!,
+      tableId: process.env.APPWRITE_BANK_COLLECTION_ID!,
+      queries: [Query.equal("$id", [documentId])],
+    });
+
+    return parseStringify(bank.rows[0]);
+  } catch (error) {
+    console.error("Error retrieving bank row:", error);
+    throw error;
   }
 };

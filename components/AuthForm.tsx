@@ -173,7 +173,7 @@ const AuthForm = ({ type }: { type: string }) => {
                     <CustomInput
                       control={form.control}
                       name="ssn"
-                      label="Last Four digits of your card"
+                      label="Last Four digits of your PAN"
                       placeholder="Example: 1234"
                     />
                   </div>

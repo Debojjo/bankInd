@@ -154,7 +154,7 @@ export const createLinkToken = async (user: User) => {
         client_user_id: user.$id,
       },
       client_name: `${user.firstName} ${user.lastName}`,
-      products: ["auth"] as Products[],
+      products: ["auth", "transactions"] as Products[], // ✅ Add transactions
       language: "en",
       country_codes: ["US"] as CountryCode[],
     };
@@ -166,6 +166,7 @@ export const createLinkToken = async (user: User) => {
     console.log(error);
   }
 };
+
 
 export const createBankAccount = async ({
   userId,
@@ -311,6 +312,32 @@ export const getBank = async ({ documentId }: getBankProps) => {
     return parseStringify(bank.rows[0]);
   } catch (error) {
     console.error("Error retrieving bank row:", error);
+    throw error;
+  }
+};
+
+export const getBankByAccountId = async ({ accountId }: getBankByAccountIdProps) => {
+  try {
+    const databaseId = process.env.APPWRITE_DATABASE_ID;
+    const tableId = process.env.APPWRITE_BANK_COLLECTION_ID;
+
+    if (!databaseId || !tableId) {
+      throw new Error('Missing required environment variables: APPWRITE_DATABASE_ID or APPWRITE_BANK_COLLECTION_ID');
+    }
+
+    const { tablesDB } = await createAdminClient(); 
+
+    const bank = await tablesDB.listRows({
+      databaseId,
+      tableId,
+      queries: [Query.equal('accountId', [accountId])],
+    });
+
+    if (bank.total !== 1) return null;
+
+    return parseStringify(bank.rows[0]);
+  } catch (error) {
+    console.error('Error retrieving bank row:', error);
     throw error;
   }
 };

@@ -78,7 +78,11 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
           </p>
         )}
 
-        {/* 📊 Top Categories Section */}
+    
+      </section>
+      
+      <section>
+        {/*  Top Categories Section */}
         <div className="mt-10 flex flex-1 flex-col gap-6">
           <h2 className="header-2">Top Categories</h2>
 

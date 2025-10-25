@@ -13,6 +13,7 @@ import {
 import { plaidClient } from "../plaid";
 import { revalidatePath } from "next/cache";
 import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
+import { redirect } from "next/navigation";
 
 export const getUserInfo = async ({ userId }: getUserInfoProps) => {
   try {
@@ -124,13 +125,31 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
+
+    // Attempt to get current session
     const result = await account.get();
 
-    const user = await getUserInfo({ userId: result.$id})
+    if (!result || !result.$id) {
+      // No session → redirect to login
+      redirect("/sign-in");
+      return null;
+    }
+
+    // Fetch user info from Appwrite database
+    const user = await getUserInfo({ userId: result.$id });
+
+    if (!user) {
+      // Session exists but user data missing → redirect
+      redirect("/sign-in");
+      return null;
+    }
 
     return parseStringify(user);
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching logged-in user:", error);
+
+    // Session might be invalid or expired → redirect
+    redirect("/sign-in");
     return null;
   }
 }

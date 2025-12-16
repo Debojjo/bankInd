@@ -1,43 +1,42 @@
-import {withSentryConfig} from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
+    // Keep this true for now to avoid TypeScript blocking builds on Vercel.
     ignoreBuildErrors: true
   },
   eslint: {
+    // Keep ESLint warnings from failing Vercel builds.
     ignoreDuringBuilds: true
   }
 };
 
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+// Conditionally wrap Next config with Sentry only when Sentry is available/configured.
+// This prevents build-time failures when Sentry isn't configured in the environment.
+let exportedConfig = nextConfig;
 
-  org: "debojjo",
+try {
+  // Use dynamic import so builds don't fail if @sentry/nextjs isn't resolvable.
+  const sentry = await import('@sentry/nextjs');
+  const { withSentryConfig } = sentry;
 
-  project: "javascript-nextjs",
+  const sentryOptions = {
+    org: "debojjo",
+    project: "javascript-nextjs",
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    tunnelRoute: "/monitoring",
+    disableLogger: true,
+    automaticVercelMonitors: true
+  };
 
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
+  // Only wrap if withSentryConfig exists and SENTRY_DSN or SENTRY_AUTH_TOKEN suggests Sentry is configured.
+  if (typeof withSentryConfig === 'function' && (process.env.SENTRY_DSN || process.env.SENTRY_AUTH_TOKEN)) {
+    exportedConfig = withSentryConfig(nextConfig, sentryOptions);
+  }
+} catch (err) {
+  // If import fails, fall back to the plain Next config. Do not crash the build.
+  // eslint-disable-next-line no-console
+  console.warn('[next.config.mjs] Sentry integration skipped:', err && err.message ? err.message : err);
+}
 
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
-  tunnelRoute: "/monitoring",
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
-  // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-  // See the following for more information:
-  // https://docs.sentry.io/product/crons/
-  // https://vercel.com/docs/cron-jobs
-  automaticVercelMonitors: true
-});
+export default exportedConfig;
